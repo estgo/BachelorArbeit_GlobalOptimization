@@ -1,0 +1,13 @@
+Add github paper
+
+
+Wie verhandelt es sich bei ganzen zahlen
+
+Forschung von Turbo, für hyperparameter. z.b Probleme 14D Robot Pushin, wie sind die definiert, Verstehen was das ist, werte reproduzieren
+
+
+Lineare Algebra
+Numerical optimization
+
+
+direkt mit paper schreiben anfangen, in latex
