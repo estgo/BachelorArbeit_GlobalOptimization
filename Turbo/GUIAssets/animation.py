@@ -94,13 +94,10 @@ class AnimateTurbo:
 
 
     def draw_past_points(self, start, end):
-        print(self.X[start:end, 0])
         self.ax.plot(self.X[start:end, 0], self.X[start:end, 1], 'go')
     def update_plot(self):
         # Clear previous rectangles
-        print(self.current_best)
-        print((self.current_frame-1)*self.batch_size)
-        print((self.current_frame)*self.batch_size)
+
         for rect in self.rectangles:
             rect.set_visible(False)
         current_indices = range((self.current_frame-1) * self.batch_size , min(self.current_frame * self.batch_size, len(self.X)))
@@ -156,8 +153,12 @@ class AnimateTurbo:
         return canvas
 
     def start_animation(self):
-        if self.ani:
-            self.ani.event_source.start()
+        if self.current_frame < self.max_frame:
+            self.step_forward()
+            # Schedule the next call to start_animation after 500ms
+            self.fig.canvas.get_tk_widget().after(500, self.start_animation)
+        else:
+            print("Animation finished")
 
     def pause_animation(self):
         if self.ani:
