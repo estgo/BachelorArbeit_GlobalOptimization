@@ -1,0 +1,4 @@
+[Name] : [Link]
+
+A Visual Exploration of Gaussian Processes : 	https://distill.pub/2019/visual-exploration-gaussian-processes/
+Gaussian process : 								https://en.wikipedia.org/wiki/Gaussian_process

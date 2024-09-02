@@ -2,14 +2,13 @@ import tkinter as tk
 from tkinter import ttk
 
 import numpy as np
-
+import sys
+sys.path.append('C:/Users/estgo/OneDrive/Bureau/Bachelorarbeit/Turbo/')
 from widgets import create_button, create_combobox
 from plotter import create_scatter_plot, create_bar_plot, embed_plot_in_frame
 import animation
 import ttkbootstrap as ttkb
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import Turbo.turbo as turbo
-import Turbo.evaluations as evaluation
 import threading
 import Turbo.scbo as scbo
 
@@ -86,7 +85,7 @@ def start_turbo_process():
     threading.Thread(target=run_search).start()
 
 def restart_canvas():
-    X_test = [[1, 10], [1, 1], [10, 10], [10, 1], [5, 5],
+    X_test = [[1, 9], [1, 1], [9, 9], [9, 1], [5, 5],
               [7, 6], [6, 7], [6, 6], [6.5, 6.5], [6.5, 7],
               [4, 4], [3, 3], [3, 4], [4, 3], [5.5, 5.5]]
 
