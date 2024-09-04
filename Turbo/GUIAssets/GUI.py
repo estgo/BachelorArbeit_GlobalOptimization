@@ -5,173 +5,177 @@ import numpy as np
 import sys
 sys.path.append('C:/Users/estgo/OneDrive/Bureau/Bachelorarbeit/Turbo/')
 from widgets import create_button, create_combobox
-from plotter import create_scatter_plot, create_bar_plot, embed_plot_in_frame
+from plotter import create_scatter_plot, create_bar_plot, embed_plot_in_frame, create_2D_contour_plot
 import animation
 import ttkbootstrap as ttkb
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import threading
 import Turbo.scbo as scbo
-
-# Static Variables
-canvas = None
-buttons = {}
-comboboxes = {}
-global X , Y, ani
-left_frame = None
-global root
-def get_theme_background_color(style, widget='TFrame'):
-    """Get the background color from the ttkbootstrap theme for a specific widget."""
-    return style.lookup(widget, 'background')
-
-def animation_button_config(state = 'normal'):
-    buttons['start_animation'].config(state=state)
-    buttons['pause_animation'].config(state=state)
-    buttons['forward_animation'].config(state=state)
-    buttons['backward_animation'].config(state=state)
+import Turbo.evaluations as evaluations
 
 
-def update_canvas(self, tk_canvas):
-    # Clear the current canvas
-    tk_canvas.pack_forget()
+class Application(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.canvas = None
+        self.buttons = {}
+        self.comboboxes = {}
+        style = ttkb.Style(theme='superhero')
+        self.title("Matplotlib Animation with Controls")
+        self.geometry("800x600")
 
-    # Embed the new animation into the frame
-    new_canvas = FigureCanvasTkAgg(self.fig, master=tk_canvas.master)
-    new_canvas.draw()
-    new_tk_canvas = new_canvas.get_tk_widget()
-    new_tk_canvas.pack(fill='both', expand=True)
+        # Create a notebook (tab control)
+        self.notebook = tk.ttk.Notebook(self)
+        self.notebook.pack(expand=True, fill="both")
 
-    return new_canvas
+        # Create the frames for each tab
+        self.view1_frame = tk.Frame(self.notebook)
+        self.view1_left_frame = None
+        self.view1_right_frame = None
+        self.view2_frame = tk.Frame(self.notebook)
+        self.view2_left_frame = None
+        self.view2_right_frame = None
+        self.notebook.add(self.view1_frame, text="View 1")
+        self.notebook.add(self.view2_frame, text="View 2")
 
+        # Initialize frames
+        self.setup_view1()
+        self.setup_view2()
 
-def start_turbo_process():
-    global canvas, X, Y, root  # Use global variables for canvas, X, and Y
-    # Disable the buttons
-    buttons['start_turbo'].config(state="disabled")
-    animation_button_config('disabled')
+        self.animation_button_config()
 
-    # Define the task to be run in a separate thread
-    def run_search():
-        global left_frame
-        scbostate = scbo.ScboState(dim=2, batch_size=5)
+    def setup_view1(self):
+        self.view1_left_frame = tk.Frame(self.view1_frame, width=400, height=600, bg="white")
+        self.view1_left_frame.pack(side="left", fill="both", expand=True)
+        self.view1_right_frame = tk.Frame(self.view1_frame, width=400, height=600, bg="lightgray")
+        self.view1_right_frame.pack(side="right", fill="both", expand=True)
 
-        try:
-            X, Y, C = scbo.testOne()
-            if X is None or Y is None:
-                raise ValueError("Received None as output from scbo.testOne()")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            buttons['start_turbo'].config(state="normal")
-            animation_button_config()
-            return
+        # ComboBox for Selection
+        options_1 = ["--[name to be decided]--", "Turbo", "ScoBO"]
+        self.comboboxes['Select State'] = create_combobox(self.view1_right_frame, options_1, x=10, y=10, width=20)
 
-        global ani
-        ani.update_data(X,Y, 5, 1, [[-1.5, -0.5], [1.5, 2.5]], True, scbostate.success_tolerance , scbostate.failure_tolerance)
-        print(left_frame.winfo_children())
-        for widget in left_frame.winfo_children():
+        # Create the second combobox with the function options
+        options_2 = ["--Select function--", "Ackley", "Michael", "Robot"]
+        self.comboboxes['Select Function'] = create_combobox(self.view1_right_frame, options_2, x=10, y=50, width=20)
+
+        # Buttons to control the animation
+        self.buttons['start_turbo'] = create_button(
+            self.view1_right_frame,
+            text="Start Process",
+            x=10,
+            y=90,
+            command=self.start_turbo_process
+        )
+        X_test = [[1, 10], [1, 1], [10, 10], [10, 1], [5, 5],
+                  [7, 6], [6, 7], [6, 6], [6.5, 6.5], [6.5, 7],
+                  [4, 4], [3, 3], [3, 4], [4, 3], [5.5, 5.5]]
+
+        Y_test = np.array([50, 49, 70, 88, 5, 80, 90, 70, 30, 55, 100, 80, 200, 300, 4])
+        boundaries = [[0, 0], [10, 10]]
+
+        # Create animation
+        self.ani = animation.AnimateTurbo(X_test, -Y_test, batch_size=5, length=2.5, bounds=boundaries)
+        self.ani.create_animation()
+        self.canvas = self.ani.embed_animation_in_frame(self.view1_left_frame)
+
+        self.buttons['start_animation'] = create_button(self.view1_right_frame, text="Start", x=10, y=200, command=self.ani.start_animation,
+                                                        state='disabled')
+        self.buttons['restart'] = create_button(self.view1_right_frame, text="restart", x=80, y=200, command=self.restart_canvas,
+                                                state='normal')
+        self.buttons['pause_animation'] = create_button(self.view1_right_frame, text="Pause", x=10, y=250, command=self.ani.pause_animation,
+                                                        state='disabled')
+        self.buttons['forward_animation'] = create_button(self.view1_right_frame, text="Step Forward", x=10, y=290,
+                                                          command=self.ani.step_forward, state='disabled')
+        self.buttons['backward_animation'] = create_button(self.view1_right_frame, text="Step Backward", x=10, y=330,
+                                                           command=self.ani.step_backward, state='disabled')
+
+    def setup_view2(self):
+        self.view2_left_frame = tk.Frame(self.view2_frame, width=600, height=600, bg="white")
+        self.view2_left_frame.pack(side="left", fill="both", expand=True)
+        self.view2_right_frame = tk.Frame(self.view2_frame, width=200, height=600, bg="lightgray")
+        self.view2_right_frame.pack(side="right", fill="both", expand=True)
+
+        bounds = [
+            [-5, 0],
+            [10, 15]
+        ]
+        # Scatter and Bar plots
+        contour_fig = create_2D_contour_plot(fun=evaluations.Branin().fun, bounds=bounds)
+        embed_plot_in_frame(contour_fig, self.view2_left_frame)
+
+        bar_fig = create_bar_plot()
+        embed_plot_in_frame(bar_fig, self.view2_left_frame)
+
+        # Button in the right frame of view2
+        clear_button = tk.Button(self.view2_right_frame, text="Clear View 2 Left", command=self.clear_view2_left_frame)
+        clear_button.pack(pady=20, padx=10, anchor='center')
+
+    def clear_view2_left_frame(self):
+        for child in self.view2_left_frame.winfo_children():
+            child.destroy()
+
+    def restart_canvas(self):
+        X_test = [[1, 9], [1, 1], [9, 9], [9, 1], [5, 5],
+                  [7, 6], [6, 7], [6, 6], [6.5, 6.5], [6.5, 7],
+                  [4, 4], [3, 3], [3, 4], [4, 3], [5.5, 5.5]]
+
+        Y_test = np.array([50, 49, 70, 88, 5, 80, 90, 70, 30, 55, 100, 80, 200, 300, 4])
+        boundaries = [[0, 0], [10, 10]]
+        self.ani.update_data(X_test, -Y_test, batch_size=5, length=2.5, bounds=boundaries)
+        for widget in self.view1_left_frame.winfo_children():
             widget.destroy()
-
-            # Embed the new animation into the frame
-        print(left_frame.winfo_children())
-        new_canvas = ani.embed_animation_in_frame(left_frame)
-        print(left_frame.winfo_children())
-
-        # Re-enable the buttons once the task is complete
-        buttons['start_turbo'].config(state="normal")
-        animation_button_config()
-
-        print("Process completed successfully.")
-
-    # Start the task in a new thread
-    threading.Thread(target=run_search).start()
-
-def restart_canvas():
-    X_test = [[1, 9], [1, 1], [9, 9], [9, 1], [5, 5],
-              [7, 6], [6, 7], [6, 6], [6.5, 6.5], [6.5, 7],
-              [4, 4], [3, 3], [3, 4], [4, 3], [5.5, 5.5]]
-
-    Y_test = np.array([50, 49, 70, 88, 5, 80, 90, 70, 30, 55, 100, 80, 200, 300, 4])
-    boundaries = [[0, 0], [10, 10]]
-    ani.update_data(X_test, -Y_test, batch_size=5, length=2.5, bounds=boundaries)
-    for widget in left_frame.winfo_children():
-        widget.destroy()
-    new_canvas = ani.embed_animation_in_frame(left_frame)
+        new_canvas = self.ani.embed_animation_in_frame(self.view1_left_frame)
 
 
-def main():
-    global canvas, ani
-    global root, left_frame
-    root = tk.Tk()
-    root.title("Matplotlib Animation with Controls")
-    root.geometry("800x600")
+    def animation_button_config(self, state = 'normal'):
+        self.buttons['start_animation'].config(state=state)
+        self.buttons['pause_animation'].config(state=state)
+        self.buttons['forward_animation'].config(state=state)
+        self.buttons['backward_animation'].config(state=state)
 
-    # Apply superhero theme
-    style = ttkb.Style(theme='superhero')
 
-    # Create a notebook (tab control)
-    notebook = ttk.Notebook(root)
-    notebook.pack(expand=True, fill="both")
 
-    # Create the frames for each tab
-    view1_frame = tk.Frame(notebook)
-    view2_frame = tk.Frame(notebook)
+    def start_turbo_process(self):
+        global X, Y  # Use global variables for canvas, X, and Y
+        # Disable the buttons
+        self.buttons['start_turbo'].config(state="disabled")
+        self.animation_button_config('disabled')
 
-    # Add the frames to the notebook with titles
-    notebook.add(view1_frame, text="View 1")
-    notebook.add(view2_frame, text="View 2")
+        # Define the task to be run in a separate thread
+        def run_search():
+            scbostate = scbo.ScboState(dim=2, batch_size=5)
 
-    # View 1 Layout: Split into left and right frames
-    left_frame = tk.Frame(view1_frame, width=400, height=600, bg="white")
-    left_frame.pack(side="left", fill="both", expand=True)
+            try:
+                X, Y, C = scbo.testOne()
+                if X is None or Y is None:
+                    raise ValueError("Received None as output from scbo.testOne()")
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                self.buttons['start_turbo'].config(state="normal")
+                self.animation_button_config()
+                return
 
-    right_frame = tk.Frame(view1_frame, width=400, height=600, bg="lightgray")
-    right_frame.pack(side="right", fill="both", expand=True)
+            self.ani.update_data(X, Y, 5, 1, [[-1.5, -0.5], [1.5, 2.5]], True, scbostate.success_tolerance,
+                            scbostate.failure_tolerance)
+            print(self.view1_left_frame.winfo_children())
+            for widget in self.view1_left_frame.winfo_children():
+                widget.destroy()
 
-    # Prepare Values for animation
-    X_test = [[1, 10], [1, 1], [10, 10], [10, 1], [5, 5],
-              [7, 6], [6, 7], [6, 6], [6.5, 6.5], [6.5, 7],
-              [4, 4], [3, 3], [3, 4], [4, 3], [5.5, 5.5]]
+                # Embed the new animation into the frame
+            print(self.view1_left_frame.winfo_children())
+            new_canvas = self.ani.embed_animation_in_frame(self.view1_left_frame)
+            print(self.view1_left_frame.winfo_children())
 
-    Y_test = np.array([50, 49, 70, 88, 5, 80, 90, 70, 30, 55, 100, 80, 200, 300, 4])
-    boundaries = [[0, 0], [10, 10]]
+            # Re-enable the buttons once the task is complete
+            self.buttons['start_turbo'].config(state="normal")
+            self.animation_button_config()
 
-    # Create animation
-    ani = animation.AnimateTurbo(X_test, -Y_test, batch_size=5, length=2.5, bounds=boundaries)
-    ani.create_animation()
-    canvas = ani.embed_animation_in_frame(left_frame)
-    print(left_frame.winfo_children())
+            print("Process completed successfully.")
 
-    # ComboBox for Selection
-    options_1 = ["--[name to be decided]--", "Turbo", "ScoBO"]
-    comboboxes['Select State'] = create_combobox(right_frame, options_1, x=10, y=10, width=20)
+        # Start the task in a new thread
+        threading.Thread(target=run_search).start()
 
-    # Create the second combobox with the function options
-    options_2 = ["--Select function--", "Ackley", "Michael", "Robot"]
-    comboboxes['Select Function'] = create_combobox(right_frame, options_2, x=10, y=50, width=20)
-
-    # Buttons to control the animation
-    buttons['start_turbo'] = create_button(
-        right_frame,
-        text="Start Process",
-        x=10,
-        y=90,
-        command=start_turbo_process
-    )
-    buttons['start_animation'] = create_button(right_frame, text="Start", x=10, y=200, command=ani.start_animation, state='disabled')
-    buttons['restart'] = create_button(right_frame, text="restart", x=80, y=200, command=restart_canvas, state='normal')
-    buttons['pause_animation'] = create_button(right_frame, text="Pause", x=10, y=250, command=ani.pause_animation, state='disabled')
-    buttons['forward_animation'] = create_button(right_frame, text="Step Forward", x=10, y=290,
-                  command=ani.step_forward, state='disabled')
-    buttons['backward_animation'] = create_button(right_frame, text="Step Backward", x=10, y=330,
-                  command=ani.step_backward, state='disabled')
-
-    # View 2 Content: Scatter Plot and Bar Plot
-    scatter_fig = create_scatter_plot()
-    embed_plot_in_frame(scatter_fig, view2_frame)
-
-    bar_fig = create_bar_plot()
-    embed_plot_in_frame(bar_fig, view2_frame)
-    animation_button_config()
-    root.mainloop()
 
 if __name__ == "__main__":
-    main()
+    app = Application()
+    app.mainloop()

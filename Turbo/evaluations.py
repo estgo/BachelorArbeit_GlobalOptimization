@@ -26,7 +26,7 @@ from abc import ABC, abstractmethod
 
 class Function(ABC):
 
-    @property
+    '''@property
     @abstractmethod
     def dim(self):
         """This is an abstract property that must be overridden in a subclass."""
@@ -36,7 +36,7 @@ class Function(ABC):
     @abstractmethod
     def bounds(self):
         """This is an abstract property that must be overridden in a subclass."""
-        pass
+        pass'''
 
 
     @abstractmethod
@@ -58,4 +58,29 @@ class Ackley20D(Function):
 
     def fun(self, x):
         return self.fun(x)
+
+class Branin(Function):
+    def __init__(self):
+        self.dim = 2
+        self.bounds = np.zeros((2, self.dim))
+        self.bounds[0, :].fill(-5)
+        self.bounds[1, :].fill(10)
+
+    def fun(self, x):
+        a = 1.0
+        b = 5.1 / (4 * np.pi ** 2)
+        c = 5 / np.pi
+        r = 6
+        s = 10
+        t = 1 / (8 * np.pi)
+
+        return a * (x[1] - b * x[0] ** 2 + c * x[0] - r) ** 2 + s * (1 - t) * np.cos(x[0]) + s
+
+    '''@dim.setter
+    def dim(self, value):
+        self._dim = value
+
+    @bounds.setter
+    def bounds(self, value):
+        self._bounds = value'''
 

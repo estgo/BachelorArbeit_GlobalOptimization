@@ -2,3 +2,9 @@
 
 A Visual Exploration of Gaussian Processes : 	https://distill.pub/2019/visual-exploration-gaussian-processes/
 Gaussian process : 								https://en.wikipedia.org/wiki/Gaussian_process
+
+Thompson sampling : 							https://en.wikipedia.org/wiki/Thompson_sampling
+
+Botorch : 										https://botorch.org/
+
+Source code for botorch.generation.sampling :	https://botorch.org/api/_modules/botorch/generation/sampling.html
