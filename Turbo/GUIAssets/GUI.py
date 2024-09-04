@@ -35,14 +35,18 @@ class Application(tk.Tk):
         self.view2_frame = tk.Frame(self.notebook)
         self.view2_left_frame = None
         self.view2_right_frame = None
+        self.view3_frame = tk.Frame(self.notebook)
+        self.view3_left_frame = None
+        self.view3_right_frame = None
         self.notebook.add(self.view1_frame, text="View 1")
         self.notebook.add(self.view2_frame, text="View 2")
+        self.notebook.add(self.view3_frame, text="View 3")
 
         # Initialize frames
         self.setup_view1()
         self.setup_view2()
+        self.setup_view3()
 
-        self.animation_button_config()
 
     def setup_view1(self):
         self.view1_left_frame = tk.Frame(self.view1_frame, width=400, height=600, bg="white")
@@ -89,6 +93,8 @@ class Application(tk.Tk):
         self.buttons['backward_animation'] = create_button(self.view1_right_frame, text="Step Backward", x=10, y=330,
                                                            command=self.ani.step_backward, state='disabled')
 
+        self.animation_button_config()
+
     def setup_view2(self):
         self.view2_left_frame = tk.Frame(self.view2_frame, width=600, height=600, bg="white")
         self.view2_left_frame.pack(side="left", fill="both", expand=True)
@@ -109,6 +115,20 @@ class Application(tk.Tk):
         # Button in the right frame of view2
         clear_button = tk.Button(self.view2_right_frame, text="Clear View 2 Left", command=self.clear_view2_left_frame)
         clear_button.pack(pady=20, padx=10, anchor='center')
+
+    def setup_view3(self):
+        self.view3_left_frame = tk.Frame(self.view3_frame, width=400, height=600, bg="white")
+        self.view3_left_frame.pack(side="left", fill="both", expand=True)
+        self.view3_right_frame = tk.Frame(self.view3_frame, width=400, height=600, bg="lightgray")
+        self.view3_right_frame.pack(side="right", fill="both", expand=True)
+
+        function = evaluations.Branin()
+        contour_fig = create_2D_contour_plot(fun=function.fun, bounds=function.bounds)
+        embed_plot_in_frame(contour_fig, self.view3_left_frame)
+
+        function = evaluations.Himmelblau2D()
+        contour_fig = create_2D_contour_plot(fun=function.fun, bounds=function.bounds)
+        embed_plot_in_frame(contour_fig, self.view3_right_frame)
 
     def clear_view2_left_frame(self):
         for child in self.view2_left_frame.winfo_children():

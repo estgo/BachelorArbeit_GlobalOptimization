@@ -84,3 +84,29 @@ class Branin(Function):
     def bounds(self, value):
         self._bounds = value'''
 
+class Michalewicz10D(Function):
+    def __init__(self):
+        self.dim = 10
+        self.bounds = np.zeros((2, self.dim))
+        #self.bounds[0, :].fill(0) #already done
+        self.bounds[1, :].fill(np.pi)
+
+    def fun(self, x, m=10):
+        if len(x) != 10:
+            raise ValueError("Input vector must have 10 dimensions.")
+
+        term = 0
+        for i in range(10):
+            term += np.sin(x[i]) * (np.sin(((i + 1) * x[i] ** 2) / np.pi)) ** (2 * m)
+
+        return -term
+
+class Himmelblau2D(Function):
+    def __init__(self):
+        self.dim = 2
+        self.bounds = np.zeros((2, self.dim))
+        self.bounds[0, :].fill(-5)
+        self.bounds[1, :].fill(5)
+
+    def fun(self, x):
+        return (x[0] ** 2 + x[1] - 11) ** 2 + (x[0] + x[1] ** 2 - 7) ** 2
