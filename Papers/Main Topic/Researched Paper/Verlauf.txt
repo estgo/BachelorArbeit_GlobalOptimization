@@ -1,0 +1,25 @@
+Buch: Pattern recognistion (AUTHOR Bishop) (Empfehlung: CHAPTER 2, 3 )
+
+Einleitung
+Einführung in BO, GP + TR + overview
+
+GP:
+(regulariesierungs techniken)
+Multi variate Gaussian
+(GP herleitung)
+(Wie wird es überhaupt trainiert)
+(Schur complement)
+1 Paragraph: short explaination, Show Matrix and mathematical formulas
+Noise no noise
+
+BO: Short Explanation, + showing Sampler Thomspon, with small Explanation and mathematical notations
+
+TR: Effectivness + use cases
+
+Turbo: Parallelism (GP Matrix + Thompson) , comparision Speed up, Turbo1 , Global optimization, Show 
+
+
+
+
+GP model plot, links function plot contour
+

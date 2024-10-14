@@ -1,0 +1,9 @@
+Todos:
+(Not Urgent)
+- find better names for 'evaluations.py' , Functions / fun / eval functions.
+- fix/uncover Function eval_objective problem with np.arrays
+- fixing Animation part + fixing stop/pause function
+
+(Main Goal)
+- Multiple GP + Turbos at the same time
+- Uncover Thompson requirements
