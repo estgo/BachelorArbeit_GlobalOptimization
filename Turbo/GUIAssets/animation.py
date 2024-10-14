@@ -153,7 +153,7 @@ class AnimateTurbo:
         return canvas
 
     def start_animation(self):
-        if self.current_frame < self.max_frame:
+        if self.current_frame <= self.max_frame:
             self.step_forward()
             # Schedule the next call to start_animation after 500ms
             self.fig.canvas.get_tk_widget().after(500, self.start_animation)

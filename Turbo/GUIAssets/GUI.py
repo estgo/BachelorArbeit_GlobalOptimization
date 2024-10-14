@@ -1,3 +1,5 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import tkinter as tk
 from tkinter import ttk
 
@@ -23,6 +25,17 @@ class Application(tk.Tk):
         style = ttkb.Style(theme='superhero')
         self.title("Matplotlib Animation with Controls")
         self.geometry("800x600")
+
+
+        #Turbo configurations
+        self.X = None
+        self.Y = None
+
+        self.X = [[1, 9], [1, 1], [9, 9], [9, 1], [5, 5],
+                  [7, 6], [6, 7], [6, 6], [6.5, 6.5], [6.5, 7],
+                  [4, 4], [3, 3], [3, 4], [4, 3], [5.5, 5.5]]
+
+        self.Y = np.array([50, 49, 70, 88, 5, 80, 90, 70, 30, 55, 100, 80, 200, 300, 4])
 
         # Create a notebook (tab control)
         self.notebook = tk.ttk.Notebook(self)
@@ -70,15 +83,11 @@ class Application(tk.Tk):
             y=90,
             command=self.start_turbo_process
         )
-        X_test = [[1, 10], [1, 1], [10, 10], [10, 1], [5, 5],
-                  [7, 6], [6, 7], [6, 6], [6.5, 6.5], [6.5, 7],
-                  [4, 4], [3, 3], [3, 4], [4, 3], [5.5, 5.5]]
 
-        Y_test = np.array([50, 49, 70, 88, 5, 80, 90, 70, 30, 55, 100, 80, 200, 300, 4])
         boundaries = [[0, 0], [10, 10]]
 
         # Create animation
-        self.ani = animation.AnimateTurbo(X_test, -Y_test, batch_size=5, length=2.5, bounds=boundaries)
+        self.ani = animation.AnimateTurbo(self.X, -self.Y, batch_size=5, length=2.5, bounds=boundaries)
         self.ani.create_animation()
         self.canvas = self.ani.embed_animation_in_frame(self.view1_left_frame)
 
@@ -122,8 +131,12 @@ class Application(tk.Tk):
         self.view3_right_frame = tk.Frame(self.view3_frame, width=400, height=600, bg="lightgray")
         self.view3_right_frame.pack(side="right", fill="both", expand=True)
 
+        bounds = [
+            [-5, 0],
+            [10, 15]
+        ]
         function = evaluations.Branin()
-        contour_fig = create_2D_contour_plot(fun=function.fun, bounds=function.bounds)
+        contour_fig = create_2D_contour_plot(fun=function.fun, bounds=bounds)
         embed_plot_in_frame(contour_fig, self.view3_left_frame)
 
         function = evaluations.Himmelblau2D()
@@ -141,7 +154,7 @@ class Application(tk.Tk):
 
         Y_test = np.array([50, 49, 70, 88, 5, 80, 90, 70, 30, 55, 100, 80, 200, 300, 4])
         boundaries = [[0, 0], [10, 10]]
-        self.ani.update_data(X_test, -Y_test, batch_size=5, length=2.5, bounds=boundaries)
+        self.ani.update_data(self.X, self.Y, batch_size=5, length=2.5, bounds=boundaries)
         for widget in self.view1_left_frame.winfo_children():
             widget.destroy()
         new_canvas = self.ani.embed_animation_in_frame(self.view1_left_frame)
