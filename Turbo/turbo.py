@@ -177,19 +177,18 @@ def generate_batch(
 
 
 def search_optimized(
-    n_init,
-    generate_points_fun,
-    eval_objective_fun,
-    state,
-    generate_batch_fun,
+    n_init = 100,
+    generate_points_fun = generate_batch,
+    eval_objective_fun = eval_objective,
+    dim = dim,
     max_cholesky_size = float("inf")
 ):
-    dim = state.dim
     X_turbo = generate_points_fun(dim, n_init)
     Y_turbo = torch.tensor(
         [eval_objective_fun(x) for x in X_turbo], dtype=dtype, device=device
     ).unsqueeze(-1)
 
+    state = TurboState(dim=dim, batch_size=batch_size, best_value=max(Y_turbo).item())
 
     NUM_RESTARTS = 10 if not SMOKE_TEST else 2
     RAW_SAMPLES = 512 if not SMOKE_TEST else 4
@@ -246,5 +245,3 @@ def search_optimized(
         )
     print("finished")
     return X_turbo, Y_turbo
-
-state = TurboState(dim=dim, batch_size=batch_size)

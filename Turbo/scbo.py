@@ -59,7 +59,7 @@ print(device)
 print(tkwargs)
 
 
-def f(X, negate):
+def f(X, negate = False):
     result = (1.0 - X[0]) ** 2 + 100.0 * ((X[1] - X[0] ** 2) ** 2)
     return result if not negate else -result
 
@@ -352,6 +352,12 @@ def search_optimum_constrained(
 
 
 def testOne():
+    # testing initial:
+    state = ScboState(dim, batch_size=5)
+    return search_optimum_constrained(10, get_initial_points, eval_objective, [eval_c1, eval_c2], state, generate_batch,
+                                         get_fitted_model)
+
+def testTwo():
     # testing initial:
     state = ScboState(dim, batch_size=5)
     return search_optimum_constrained(10, get_initial_points, eval_objective, [eval_c1, eval_c2], state, generate_batch,
